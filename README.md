@@ -44,6 +44,54 @@
 		也存在问题：不容易维护，存在兼容性的问题。
 		制作一些有规则的，不复杂的图形，举例：圆形
 
-	8)、学习用chrome调试打断点	
+	8)、用chrome调试打断点
 
-    9)、用回调函数来把数据层与UI层之间联系起来
+    9)、用回调函数来把数据层与UI层之间串起来。
+
+    10)、回调函数用的多，逻辑不容易看清。如何能避免使用回调函数？
+        1、事件消息通知
+        2、ES6 Promise
+        3、ES6 generator
+
+        4、使用Promise:
+           使用前申明： "use strict";  严格模式， 否则会报错
+
+           //todo  解决获取小说内容，回调函数造成逻辑复杂问题
+           var getFictionInfoPromise = function(){
+               return new Promise(function(resolve,reject){
+                   $.get('data/chapter.json', function( data ){
+                       if( data.result == 0 ){
+                               Chapter_id = (Chapter_id == undefined) ? data.chapters[1].chapter_id : Chapter_id;
+                               CharterTotal = data.chapters.length;
+                               resolve();
+                       }else{
+                               reject();
+                       }
+                   });
+               });
+           }
+
+            //todo 解决获取章节内容，回调函数造成逻辑复杂问题
+            var getCurChapterContentPromise =function() {
+                return new Promise(function (resolve, reject) {
+                    $.get("data/data" + Chapter_id + ".json", function (data) {
+                        if (data.result == 0) {
+                            var url = data.jsonp;
+                            Uilt.getBSONP(url, function (data) {
+                                resolve(data);
+                            })
+                        } else {
+                            reject({"msg": "fail"});
+                        }
+                    });
+                });
+            }
+
+            //todo 调用：
+            getFictionInfoPromise()
+                .then(function(d){
+                    return getCurChapterContentPromise();
+                })
+                .then(function(d){
+                    UIcallback && UIcallback( d );
+                });
